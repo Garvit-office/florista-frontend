@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 export default function Login() {
@@ -8,6 +9,8 @@ export default function Login() {
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("user");
+  const [location, setLocation] = useState("");
+  const [price, setPrice] = useState("");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,17 +26,16 @@ export default function Login() {
 
     try {
       if (isRegister) {
-        const res = await fetch("http://localhost:8080/auth/register", {
+        // Add location and price for gardener
+        const body = role === "gardener"
+          ? { name, email, password, role, location, pricePerHour: price }
+          : { name, email, password, role };
+        const res = await fetch((process.env.REACT_APP_API_URL || "http://localhost:8080") + "/auth/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-            role,
-          }),
+          body: JSON.stringify(body),
         });
 
         const data = await res.json();
@@ -46,11 +48,13 @@ export default function Login() {
           setEmail("");
           setPassword("");
           setRole("user");
+          setLocation("");
+          setPrice("");
         } else {
           setError(data.message || "Registration failed");
         }
       } else {
-        const res = await fetch("http://localhost:8080/auth/login", {
+        const res = await fetch((process.env.REACT_APP_API_URL || "http://localhost:8080") + "/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -290,6 +294,28 @@ export default function Login() {
                   👨‍🌾 Gardener
                 </button>
               </div>
+
+              {/* Gardener extra fields */}
+              {role === "gardener" && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Price per hour"
+                    value={price}
+                    onChange={e => setPrice(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                </>
+              )}
             </>
           )}
 
